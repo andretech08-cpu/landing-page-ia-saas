@@ -1,26 +1,27 @@
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Cliente para uso no browser (client components)
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
 
 // Types para o banco de dados
 export type User = {
-  id: string;
-  email: string;
-  name: string;
-  plan?: 'starter' | 'pro' | 'scale';
-  created_at: string;
-};
+  id: string
+  email: string
+  name: string
+  plan?: 'starter' | 'pro' | 'scale'
+  created_at: string
+}
 
 export type Agent = {
-  id: string;
-  user_id: string;
-  name: string;
-  type: 'Support' | 'Sales' | 'Marketing' | 'Other';
-  description?: string;
-  status: 'Active' | 'Paused';
-  last_run: string;
-  created_at: string;
-};
+  id: string
+  user_id: string
+  name: string
+  type: 'Support' | 'Sales' | 'Marketing' | 'Other'
+  description?: string
+  status: 'Active' | 'Paused'
+  last_run: string
+  created_at: string
+}
