@@ -249,25 +249,27 @@ export default function LandingPage() {
 
   useEffect(() => {
     // Check if user is logged in
-    const currentUser = getCurrentUser()
-    setUser(currentUser)
+    const checkAuth = async () => {
+      const currentUser = await getCurrentUser()
+      setUser(currentUser)
+    }
+    checkAuth()
   }, [])
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     setUser(null)
     router.push('/')
   }
 
-  const handlePlanClick = (plan: 'starter' | 'pro' | 'scale') => {
+  const handlePlanClick = async (plan: 'starter' | 'pro' | 'scale') => {
     if (!user) {
-      // User not logged in - save plan and redirect to signup
-      setSelectedPlan(plan)
-      router.push('/signup')
+      // User not logged in - redirect to login
+      router.push('/login')
     } else {
       // User logged in - update plan
-      const result = updateUserPlan(plan)
-      if (result.success) {
+      try {
+        await updateUserPlan(user.id, plan)
         const planName = plan.charAt(0).toUpperCase() + plan.slice(1)
         setSuccessMessage(`${t.planUpdated} ${planName}!`)
         setUser({ ...user, plan })
@@ -276,7 +278,17 @@ export default function LandingPage() {
         setTimeout(() => {
           setSuccessMessage('')
         }, 3000)
+      } catch (error) {
+        console.error('Failed to update plan:', error)
       }
+    }
+  }
+
+  const handleGetStarted = () => {
+    if (user) {
+      router.push('/app')
+    } else {
+      router.push('/login')
     }
   }
 
@@ -353,7 +365,7 @@ export default function LandingPage() {
               {user ? (
                 <>
                   <Link 
-                    href="/dashboard" 
+                    href="/app" 
                     className="hidden sm:block text-sm text-gray-300 hover:text-emerald-400 transition-colors"
                   >
                     {t.navDashboard}
@@ -375,7 +387,7 @@ export default function LandingPage() {
                     {t.login}
                   </Link>
                   <Link
-                    href="/signup"
+                    href="/login"
                     className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-105"
                   >
                     {t.signup}
@@ -422,12 +434,12 @@ export default function LandingPage() {
               </ul>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/signup"
+                <button
+                  onClick={handleGetStarted}
                   className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 hover:scale-105 text-center"
                 >
                   {t.heroCtaPrimary}
-                </Link>
+                </button>
                 <a
                   href="#pricing"
                   className="border-2 border-emerald-500/50 hover:border-emerald-500 text-emerald-400 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 hover:scale-105 text-center"
@@ -801,12 +813,12 @@ export default function LandingPage() {
               {t.ctaSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/signup"
+              <button
+                onClick={handleGetStarted}
                 className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 hover:scale-105"
               >
                 {t.ctaButton1}
-              </Link>
+              </button>
               <Link
                 href="/help"
                 className="border-2 border-emerald-500/50 hover:border-emerald-500 text-emerald-400 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 hover:scale-105"

@@ -2,14 +2,16 @@
 
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { login } from '@/lib/auth'
+import { login, signup } from '@/lib/auth'
 import { Sparkles, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
+  const [isSignup, setIsSignup] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -19,12 +21,23 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const result = await login(email, password)
+      if (isSignup) {
+        // Signup
+        if (!name.trim()) {
+          setError('Please enter your name')
+          setLoading(false)
+          return
+        }
+        await signup(email, password, name)
+      } else {
+        // Login
+        await login(email, password)
+      }
       
-      // Redirect to dashboard
-      router.push('/dashboard')
+      // Redirect to /app
+      router.push('/app')
     } catch (err: any) {
-      setError(err.message || 'Invalid email or password')
+      setError(err.message || (isSignup ? 'Failed to create account' : 'Invalid email or password'))
       setLoading(false)
     }
   }
@@ -48,10 +61,14 @@ export default function LoginPage() {
           <div className="text-center mb-8">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-4">
               <Sparkles className="w-4 h-4 mr-2" />
-              Welcome Back
+              {isSignup ? 'Get Started' : 'Welcome Back'}
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Login to your account</h1>
-            <p className="text-gray-400">Continue building your AI SaaS</p>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {isSignup ? 'Create your account' : 'Login to your account'}
+            </h1>
+            <p className="text-gray-400">
+              {isSignup ? 'Start building your AI SaaS' : 'Continue building your AI SaaS'}
+            </p>
           </div>
 
           {/* Error message */}
@@ -64,6 +81,23 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {isSignup && (
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                  placeholder="John Doe"
+                  required={isSignup}
+                />
+              </div>
+            )}
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
                 Email
@@ -91,7 +125,11 @@ export default function LoginPage() {
                 className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                 placeholder="••••••••"
                 required
+                minLength={6}
               />
+              {isSignup && (
+                <p className="mt-1 text-xs text-gray-400">Minimum 6 characters</p>
+              )}
             </div>
 
             <button
@@ -99,17 +137,23 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? (isSignup ? 'Creating account...' : 'Logging in...') : (isSignup ? 'Create account' : 'Login')}
             </button>
           </form>
 
-          {/* Signup link */}
+          {/* Toggle between login/signup */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-400">
-              Don't have an account?{' '}
-              <Link href="/signup" className="text-emerald-400 hover:text-emerald-300 font-medium">
-                Create account
-              </Link>
+              {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <button
+                onClick={() => {
+                  setIsSignup(!isSignup)
+                  setError('')
+                }}
+                className="text-emerald-400 hover:text-emerald-300 font-medium"
+              >
+                {isSignup ? 'Login' : 'Create account'}
+              </button>
             </p>
           </div>
         </div>
